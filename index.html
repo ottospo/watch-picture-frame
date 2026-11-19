@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watch Picture Frame</title>
+<meta name="theme-color" content="#121c28">
+<meta name="description" content="Send photos from your phone or computer to a compatible watch over Bluetooth.">
+<meta name="application-name" content="Watch Picture Frame">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0b111a;color:#edf3fb}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:26px 14px;background:radial-gradient(ellipse at 50% 0%,#192a3c 0%,#0b111a 60%)}
+main{width:min(100%,660px);background:#121c28;border:1px solid #2b394b;border-radius:19px;box-shadow:0 28px 70px #0005;overflow:hidden}
+header{padding:24px 27px 20px;display:flex;align-items:center;gap:15px;border-bottom:1px solid #263448}
+.watch{width:49px;height:49px;flex:none;display:grid;place-items:center;border:2px solid #5fd4b4;border-radius:17px;background:#163b39;color:#7de6c9}
+h1{font-size:21px;letter-spacing:-.5px;margin:0 0 5px;font-weight:720}header p{margin:0;font-size:13px;color:#a9b9c9}
+section{padding:21px 27px;border-bottom:1px solid #263448}section:last-of-type{border-bottom:0}
+.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}h2{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#adc2d5;margin:0;font-weight:740}
+button{border:0;border-radius:10px;padding:11px 17px;background:#66d9bd;color:#09241e;font-weight:750;cursor:pointer;font-size:13px;transition:filter .15s,transform .15s}button:hover:not(:disabled){filter:brightness(1.08)}button:active:not(:disabled){transform:translateY(1px)}button:disabled{opacity:.38;cursor:not-allowed}button.ghost{background:#26374a;color:#deebf6}
+.controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.statusline{display:flex;gap:9px;align-items:flex-start;margin-top:14px;min-height:22px}.dot{width:9px;height:9px;background:#8492a3;border-radius:50%;flex:none;margin-top:5px;box-shadow:0 0 0 4px #ffffff0a}.dot.connected{background:#57d7af;box-shadow:0 0 0 4px #57d7af20}.dot.busy{background:#f5c778;box-shadow:0 0 0 4px #f5c77822}.dot.error{background:#fa8b8b;box-shadow:0 0 0 4px #fa8b8b22}#status{font-size:13px;line-height:1.5;color:#bdccdc;margin:0;overflow-wrap:anywhere}
+.inputrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}input[type=file]{font-size:12px;color:#c5d5e3;width:100%;max-width:365px}input[type=file]::file-selector-button{border:1px solid #3c5369;background:#22364a;color:#e8f3fd;padding:10px 12px;border-radius:9px;cursor:pointer;margin-right:10px;font:inherit;font-weight:700}input[type=file]:disabled{opacity:.45}
+select{border:1px solid #3c5369;background:#22364a;color:#e8f3fd;padding:8px;border-radius:9px;font:inherit;font-size:12px}select:disabled{opacity:.48}#storage{font-size:11px}#selection{margin:12px 0 14px;font-size:12px;color:#a9b9ca}.sendrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.hint{font-size:12px;color:#879bb0}#send{min-width:135px}
+.settingsrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 13px}.settingsrow label{font-size:12px;color:#b8cbdb}.settingsrow input{width:76px;padding:8px 9px;border:1px solid #3c5369;border-radius:9px;background:#22364a;color:#edf3fb;font:inherit;font-size:13px}.settingsrow .hint{font-size:11px}.previews{display:grid;gap:10px;margin:0 0 16px}.previews:empty{display:none}.previewitem{display:grid;grid-template-columns:58px 1fr auto;gap:11px;align-items:center;padding:9px 10px;border:1px solid #2b4052;background:#172634;border-radius:10px}.previewthumb{width:58px;height:58px;border-radius:10px;overflow:hidden;background:#0e1823;border:1px solid #2f4356;display:grid;place-items:center;flex:none}.previewthumb img{width:100%;height:100%;object-fit:cover;display:block}.previewmeta{min-width:0}.previewname{font-size:12px;color:#d9e5ef;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.previewsub{margin-top:2px;font-size:11px;color:#8fa4b7}.toggle{display:flex;align-items:center;gap:7px;font-size:12px;color:#c8d8e5;white-space:nowrap}.toggle input{width:16px;height:16px;accent-color:#66d9bd}.previewitem.off{opacity:.52}.previewitem.off .previewthumb{filter:grayscale(.3)}
+#progresswrap{display:none;margin-top:15px}#progresswrap.show{display:block}.track{height:7px;background:#273a4b;border-radius:12px;overflow:hidden}#progressbar{height:100%;width:0;background:#66d9bd;transition:width .18s}.progresslabel{margin:7px 0 0;color:#98aec1;font-size:11px}
+#results{list-style:none;margin:17px 0 0;padding:0;max-height:220px;overflow:auto;display:grid;gap:5px}#results:empty{display:none}#results li{padding:8px 10px;border:1px solid #2b4052;background:#172634;border-radius:8px;font-size:12px;color:#c4d5e0;overflow-wrap:anywhere}#results li.ok{border-left:3px solid #66d9bd}#results li.bad{border-left:3px solid #f1ae85}
+footer{border-top:1px solid #263448;padding:13px 27px 17px;font-size:11px;line-height:1.55;color:#8297aa}footer strong{color:#c2d0dc;font-weight:650}
+@media(max-width:520px){header,section{padding-left:19px;padding-right:19px}footer{padding-left:19px;padding-right:19px}h1{font-size:19px}.watch{width:44px;height:44px}.previewitem{grid-template-columns:52px 1fr}.toggle{grid-column:2;justify-self:start}}
+
+/* Button layout: selection, gallery tools, and transfer stay visually distinct. */
+.browser-note{font-size:12px;line-height:1.65;color:#b9cfe0;margin:13px 0 0;padding:11px 13px;border:1px solid #35495e;border-radius:10px;background:#1a2a39}
+.browser-note strong{color:#d9f4ea}
+.controls button{min-height:44px}
+#connect,#disconnect{min-width:135px;text-align:center}
+.inputrow,.settingsrow{display:grid;grid-template-columns:140px minmax(150px,220px) minmax(0,1fr);gap:14px;align-items:center;margin:14px 0 6px}
+.inputrow input[type=file], .settingsrow input, .settingsrow select{max-width:none;min-width:0;width:100%}
+.inputrow label, .settingsrow label{justify-self:start;margin:0}
+.settingsrow{margin:0 0 13px}
+.settingsrow .hint{font-size:11px;line-height:1.45}
+#selectionActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 7px!important}
+#selectionActions button{width:100%;padding:11px 8px;white-space:normal}
+#galleryCount{margin:0 0 14px;line-height:1.5}
+.sendrow{padding-top:6px}
+@media(max-width:620px){.inputrow,.settingsrow{grid-template-columns:1fr;gap:7px}.settingsrow{margin:0 0 13px}#selectionActions{gap:7px}#selectionActions button{font-size:12px;padding:10px 5px}#connect,#disconnect{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="watch" aria-hidden="true"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="12" height="14" rx="3"/><path d="M9 5V2h6v3M9 19v3h6v-3"/><path d="M9 12h6"/></svg></div>
+<div><h1>Watch Picture Frame</h1><p>Connect your watch and send photos</p></div>
+</header>
+<section>
+<div class="sectionhead"><h2>01 &nbsp; Connection</h2><span class="hint">Web Bluetooth</span></div>
+<div class="controls"><button id="connect">Connect watch</button><button id="disconnect" class="ghost" disabled>Disconnect</button></div>
+<div class="statusline"><span class="dot" id="statusdot" aria-hidden="true"></span><p id="status" role="status" aria-live="polite">Not connected.</p></div>
+<p class="browser-note"><strong>Android:</strong> Open this HTML page in <strong>Google Chrome</strong>, not an HTML Viewer app. Connect to the watch using the <strong>Connect watch</strong> button above; pairing in Android settings alone is not enough.</p>
+</section>
+<section>
+<div class="sectionhead"><h2>02 &nbsp; Photos</h2><span class="hint">240 × 240 · Standard JPEG</span></div>
+<p class="hint" style="line-height:1.7;margin:0 0 14px">Choose one or more photos from your phone, tablet, or computer. You can add more photos later without losing your checked and unchecked choices. Use the gallery buttons to manage your selection. The gallery shows 40 previews at a time.</p>
+<div class="inputrow">
+  <label class="hint" for="photos">Choose Photos</label>
+  <input id="photos" type="file" accept="image/jpeg,image/png,image/webp,image/bmp,.jpg,.jpeg,.png,.webp,.bmp" multiple disabled aria-label="Choose one or more photos from your device">
+</div>
+<p id="selection">No photos selected.</p>
+<div class="settingsrow"><label for="maxphotos">Maximum photos</label><input id="maxphotos" type="number" min="1" max="9999" step="1" value="25" inputmode="numeric"><span class="hint">First checked photos, sorted by filename</span></div>
+<div class="settingsrow"><label for="mode">Upload mode</label><select id="mode" disabled><option value="replace">Replace existing photos</option><option value="add">Add to existing photos</option></select><span class="hint" id="storage">Connect to check watch firmware</span></div>
+<div class="controls" id="selectionActions">
+  <button id="selectAll" type="button" class="ghost" disabled>Select All</button>
+  <button id="deselectAll" type="button" class="ghost" disabled>Deselect All</button>
+  <button id="clearPhotos" type="button" class="ghost" disabled>Clear selection</button>
+</div>
+<p class="hint" id="galleryCount">No pictures loaded.</p>
+<div id="previews" class="previews" aria-label="Selected photo previews"></div>
+<button id="loadMore" type="button" class="ghost" style="display:none;margin-bottom:16px">Load More (40)</button>
+<div class="sendrow"><span class="hint">Standard JPEG conversion · auto-fit 240 × 240 · Android-safe BLE transfer</span><button id="send" disabled>Send JPEGs</button></div>
+<div id="progresswrap" class="" role="progressbar" aria-label="Photo transfer progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div id="progressbar"></div></div><p id="progresslabel" class="progresslabel"></p></div>
+<ul id="results" aria-label="Transfer results"></ul>
+</section>
+<footer><strong>Note:</strong> On supported firmware, photos persist in Flash. Transfers are not encrypted or authenticated. Add mode may evict old photos and does not detect duplicates.</footer>
+</main>
+<script>
+    const serviceUuid = '793f0001-4f1d-4c70-9d8b-7869fa2b8ab1';
+    const statusUuid = '793f0002-4f1d-4c70-9d8b-7869fa2b8ab1';
+    const transferUuid = '793f0003-4f1d-4c70-9d8b-7869fa2b8ab1';
+    const replyUuid = '793f0004-4f1d-4c70-9d8b-7869fa2b8ab1';
+    const storageUuid = '793f0005-4f1d-4c70-9d8b-7869fa2b8ab1';
+    const maxPhotoBytes = 1024 * 1024;
+    const defaultChunkSize = 19;
+    const maxChunkSize = 243;
+    const writeWindow = 8;
+    const connect = document.getElementById('connect');
+    const disconnect = document.getElementById('disconnect');
+    const clearPhotos = document.getElementById('clearPhotos');
+    const photos = document.getElementById('photos');
+    clearPhotos.addEventListener('click', () => { useSelectedFiles([]); photos.value = ''; });
+    const send = document.getElementById('send');
+    const selection = document.getElementById('selection');
+    const status = document.getElementById('status');
+    const results = document.getElementById('results');
+    const previews = document.getElementById('previews');
+    const selectAll = document.getElementById('selectAll');
+    const deselectAll = document.getElementById('deselectAll');
+    const loadMore = document.getElementById('loadMore');
+    const galleryCount = document.getElementById('galleryCount');
+    const galleryPageSize = 40;
+    let visibleCount = galleryPageSize;
+    selectAll.addEventListener('click', () => setAllChecked(true));
+    deselectAll.addEventListener('click', () => setAllChecked(false));
+    loadMore.addEventListener('click', () => { visibleCount = Math.min(files.length, visibleCount + galleryPageSize); renderPreviews(); });
+    function setAllChecked(checked) {
+      if (sending) return;
+      files.forEach(entry => entry.enabled = checked);
+      updateSelectionText();
+      renderPreviews();
+      updateControls();
+    }
+    const maxphotos = document.getElementById('maxphotos');
+    const mode = document.getElementById('mode');
+    const storage = document.getElementById('storage');
+    const progresswrap = document.getElementById('progresswrap');
+    const progressbar = document.getElementById('progressbar');
+    const progresslabel = document.getElementById('progresslabel');
+    function showTransferStage(stage, percentage = 0) {
+      progresswrap.classList.add('show');
+      progressbar.style.width = Math.max(0, Math.min(100, percentage)) + '%';
+      progresslabel.textContent = stage;
+      progresswrap.setAttribute('aria-valuenow', String(Math.round(percentage)));
+    }
+    function hideTransferStage() { progresswrap.classList.remove('show'); }
+
+    let device, transfer, reply;
+    let files = [];
+    let sending = false;
+    let storageMode;
+
+    function getEnabledEntries() {
+      return files.filter(entry => entry.enabled);
+    }
+
+    function getMaximumPhotos() {
+      const raw = Number(maxphotos.value);
+      return Number.isFinite(raw) ? Math.max(1, Math.min(9999, Math.floor(raw))) : 25;
+    }
+
+    function getUploadEntries() {
+      return getEnabledEntries().slice(0, getMaximumPhotos());
+    }
+
+    function updateSelectionText(folderName = '') {
+      const total = files.length;
+      const enabled = getEnabledEntries().length;
+      if (!folderName && !total) {
+        selection.textContent = 'No photos selected.';
+        return;
+      }
+      selection.textContent = (folderName ? 'Selected: ' + folderName : 'Selected photos') + ' — ' + total + ' image(s), ' + enabled + ' checked, ' + getUploadEntries().length + ' to send.';
+    }
+
+    function updateControls() {
+      const connected = !!(device && device.gatt.connected && transfer && reply);
+      const enabledCount = getUploadEntries().length;
+      maxphotos.disabled = sending;
+      mode.disabled = !connected || sending || storageMode !== 'FLASH3';
+      connect.disabled = connected || sending;
+      disconnect.disabled = !connected;
+      photos.disabled = !connected || sending;
+      clearPhotos.disabled = sending || files.length === 0;
+      selectAll.disabled = sending || files.length === 0;
+      deselectAll.disabled = sending || files.length === 0;
+      loadMore.disabled = sending;
+      send.disabled = !connected || sending || enabledCount === 0;
+    }
+
+    function cleanupPreviews() {
+      for (const entry of files) {
+        if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+      }
+    }
+
+    function renderPreviews() {
+      previews.replaceChildren();
+      const shown = Math.min(files.length, visibleCount);
+      galleryCount.textContent = files.length ? 'Showing ' + shown + ' of ' + files.length + ' pictures' : 'No pictures loaded.';
+      loadMore.style.display = shown < files.length ? 'inline-block' : 'none';
+      for (const [index, entry] of files.slice(0, shown).entries()) {
+        if (!entry.previewUrl) entry.previewUrl = URL.createObjectURL(entry.file);
+        const row = document.createElement('div');
+        row.className = 'previewitem' + (entry.enabled ? '' : ' off');
+
+        const thumb = document.createElement('div');
+        thumb.className = 'previewthumb';
+        const img = document.createElement('img');
+        img.src = entry.previewUrl;
+        img.alt = '';
+        thumb.appendChild(img);
+
+        const meta = document.createElement('div');
+        meta.className = 'previewmeta';
+        const name = document.createElement('div');
+        name.className = 'previewname';
+        name.textContent = entry.file.name;
+        const sub = document.createElement('div');
+        sub.className = 'previewsub';
+        sub.textContent = (entry.file.size / 1024).toFixed(1) + ' KB · ' + (/\.jpe?g$/i.test(entry.file.name) ? 'JPEG' : 'convert to JPEG');
+        meta.append(name, sub);
+
+        const toggle = document.createElement('label');
+        toggle.className = 'toggle';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = entry.enabled;
+        checkbox.disabled = sending;
+        checkbox.addEventListener('change', () => {
+          entry.enabled = checkbox.checked;
+          row.className = 'previewitem' + (entry.enabled ? '' : ' off');
+          updateSelectionText();
+          updateControls();
+        });
+        const text = document.createElement('span');
+        text.textContent = 'Upload';
+        toggle.append(checkbox, text);
+
+        row.append(thumb, meta, toggle);
+        previews.appendChild(row);
+      }
+    }
+
+    function disconnected(event) {
+      if (event.target !== device) return;
+      device.removeEventListener('gattserverdisconnected', disconnected);
+      device = transfer = reply = undefined;
+      storageMode = undefined;
+      storage.textContent = 'Connect to check watch firmware';
+      status.textContent = 'Disconnected.';
+      updateControls();
+    }
+
+    connect.addEventListener('click', async () => {
+      if (!navigator.bluetooth) {
+        status.textContent = 'Web Bluetooth is unavailable. Use Chrome or Edge in a secure context and enable Bluetooth.';
+        return;
+      }
+      connect.disabled = true;
+      let selected;
+      try {
+        selected = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [serviceUuid] });
+        device = selected;
+        device.addEventListener('gattserverdisconnected', disconnected);
+        status.textContent = 'Connecting...';
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(serviceUuid);
+        const characteristic = await service.getCharacteristic(statusUuid);
+        const value = new TextDecoder().decode(await characteristic.readValue());
+        if (value !== 'Picture frame connection test') throw new Error('Unexpected watch response.');
+        transfer = await service.getCharacteristic(transferUuid);
+        reply = await service.getCharacteristic(replyUuid);
+        let storageCharacteristic;
+        try {
+          storageCharacteristic = await service.getCharacteristic(storageUuid);
+        } catch (error) {
+          if (error.name !== 'NotFoundError') throw error;
+        }
+        if (storageCharacteristic) {
+          storageMode = new TextDecoder().decode(await storageCharacteristic.readValue());
+          if (!['FLASH1', 'FLASH2', 'FLASH3'].includes(storageMode)) {
+            throw new Error('Unexpected watch storage response. Refresh the connection page.');
+          }
+          storage.textContent = storageMode === 'FLASH3' ? 'Flash · replace or add' : 'Flash · add only (update firmware to replace)';
+        } else {
+          storageMode = undefined;
+          storage.textContent = 'Legacy RAM · add only';
+        }
+        mode.value = storageMode === 'FLASH3' ? 'replace' : 'add';
+        if (!server.connected) throw new Error('Watch disconnected during connection.');
+        status.textContent = 'Connected to ' + device.name + '.';
+        updateControls();
+      } catch (error) {
+        if (selected) {
+          selected.removeEventListener('gattserverdisconnected', disconnected);
+          if (selected.gatt.connected) selected.gatt.disconnect();
+        }
+        if (device === selected) device = transfer = reply = undefined;
+        storageMode = undefined;
+        storage.textContent = 'Connect to check watch firmware';
+        updateControls();
+        status.textContent = error.name === 'NotFoundError' ? 'No watch selected.' : 'Connection failed: ' + error.message;
+      }
+    });
+
+    disconnect.addEventListener('click', () => {
+      if (device && device.gatt.connected) device.gatt.disconnect();
+    });
+
+    // Android browsers generally support ordinary file selection more reliably
+    // than webkitdirectory. Both inputs feed the same existing transfer path.
+    function isImageFile(file) {
+      return /\.(jpe?g|png|webp|bmp)$/i.test(file.name)
+        || ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'].includes(file.type);
+    }
+
+    function fileIdentity(file) {
+      return [file.name, file.size, file.lastModified, file.webkitRelativePath || ''].join('\u0000');
+    }
+
+    // Subsequent selections preserve existing preview entries and checkboxes.
+    function useSelectedFiles(chosen, folderName = '', append = false) {
+      if (!append) {
+        cleanupPreviews();
+        files = [];
+        visibleCount = galleryPageSize;
+      }
+      const seen = new Set(files.map(entry => fileIdentity(entry.file)));
+      for (const file of chosen) {
+        if (!isImageFile(file)) continue;
+        const identity = fileIdentity(file);
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        files.push({file, enabled: true, previewUrl: null, folderName});
+      }
+      files.sort((a,b) => a.file.name.localeCompare(b.file.name));
+      updateSelectionText(folderName);
+      renderPreviews();
+      results.replaceChildren();
+      hideTransferStage();
+      updateControls();
+    }
+
+    photos.addEventListener('change', () => {
+      const chosen = Array.from(photos.files);
+      if (chosen.length) useSelectedFiles(chosen, '', true);
+      // Reset the input so selecting the same photo again also fires 'change'.
+      photos.value = '';
+    });
+
+    function addResult(text) {
+      const item = document.createElement('li');
+      item.textContent = text;
+      results.appendChild(item);
+    }
+
+    function crc32(bytes) {
+      let crc = 0xFFFFFFFF;
+      for (const byte of bytes) {
+        crc ^= byte;
+        for (let bit = 0; bit < 8; ++bit) crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+      }
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function checkJpegFormat(bytes) {
+      if (bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) {
+        throw new Error('not a JPEG');
+      }
+      let offset = 2;
+      while (offset + 3 < bytes.length) {
+        if (bytes[offset++] !== 0xFF) throw new Error('invalid JPEG header');
+        const marker = bytes[offset++];
+        const length = (bytes[offset] << 8) | bytes[offset + 1];
+        if (length < 2 || offset + length > bytes.length) throw new Error('invalid JPEG header');
+        if ((marker >= 0xC0 && marker <= 0xCF) && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
+          if (marker !== 0xC0) throw new Error('unsupported JPEG format (baseline required)');
+          if (length < 8) throw new Error('invalid JPEG header');
+          const components = bytes[offset + 7];
+          if (bytes[offset + 2] !== 8 || (components !== 1 && components !== 3)
+              || length !== 8 + 3 * components) {
+            throw new Error('unsupported JPEG format');
+          }
+          for (let i = 0; i < components; ++i) {
+            const sampling = bytes[offset + 9 + 3 * i];
+            if ((i === 0 && ![0x11, 0x21, 0x22].includes(sampling))
+                || (i > 0 && sampling !== 0x11)) {
+              throw new Error('unsupported JPEG sampling');
+            }
+          }
+          return;
+        }
+        if (marker === 0xDA || marker === 0xD9) break;
+        offset += length;
+      }
+      throw new Error('invalid JPEG header');
+    }
+
+    // Decode the selected image, fit it inside 240×240 with black bars, then
+    // ALWAYS produce a fresh standard JPEG using the built-in browser encoder.
+    // This also normalizes JPEGs from Android cameras instead of sending their
+    // original (potentially incompatible) encoding directly to the watch.
+    async function decodePhoto(file) {
+      // HTMLImageElement decoding works on Android Chrome, including file picks.
+      const url = URL.createObjectURL(file);
+      try {
+        const img = new Image();
+        img.src = url;
+        if (typeof img.decode === 'function') {
+          await img.decode();
+        } else {
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('Could not decode image'));
+          });
+        }
+        if (!img.naturalWidth || !img.naturalHeight) throw new Error('Invalid image dimensions');
+        return img;
+      } finally {
+        // Calling revokeObjectURL after decode keeps memory use low on phones.
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function preparePhoto(file) {
+      let img;
+      try {
+        img = await decodePhoto(file);
+      } catch (error) {
+        throw new Error('Image decode failed: ' + error.message);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = 240;
+      canvas.height = 240;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) throw new Error('Canvas unavailable');
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 240, 240);
+      const factor = Math.min(240 / img.naturalWidth, 240 / img.naturalHeight);
+      const w = img.naturalWidth * factor;
+      const h = img.naturalHeight * factor;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, (240 - w) / 2, (240 - h) / 2, w, h);
+      for (const quality of [0.85, 0.72, 0.55, 0.40]) {
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob(value => value ? resolve(value) : reject(new Error('JPEG conversion failed')), 'image/jpeg', quality);
+        });
+        if (blob.type !== 'image/jpeg') throw new Error('Browser JPEG encoding unsupported');
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        if (bytes.length > maxPhotoBytes) continue;
+        checkJpegFormat(bytes); // Validate watch-compatible baseline JPEG.
+        return bytes;
+      }
+      throw new Error('Converted JPEG exceeds 1 MB');
+    }
+
+    async function command(packet) {
+      await transfer.writeValueWithResponse(packet);
+      return new TextDecoder().decode(await reply.readValue());
+    }
+
+    send.addEventListener('click', async () => {
+      const selectedFiles = getUploadEntries();
+      if (!selectedFiles.length) { status.textContent = 'No checked photos to send. Select a photo and leave Upload checked.'; return; }
+      if (!(device && device.gatt.connected && transfer && reply)) { status.textContent = 'Watch is not connected. Connect the watch first.'; return; }
+      const replaceMode = storageMode === 'FLASH3' && mode.value === 'replace';
+      const warning = replaceMode
+        ? 'The watch collection will be replaced by the successfully transferred photos. If none succeed, the old collection is kept.'
+        : 'Adding may remove older photos to make room and will not detect duplicates.';
+      if (!confirm('Send ' + selectedFiles.length + ' selected photo(s)? ' + warning + ' The connection is not encrypted or authenticated.')) return;
+      sending = true;
+      updateControls();
+      renderPreviews();
+      results.replaceChildren();
+      status.textContent = 'Starting transfer of ' + selectedFiles.length + ' photo(s)...';
+      showTransferStage('Starting Bluetooth transfer...', 0);
+      let saved = 0, skipped = 0, replaced = 0, index = 0;
+      let batchStarted = false, saveStarted = false;
+      try {
+        let chunkSize = defaultChunkSize;
+        // Android BLE write-without-response queues can overflow during image uploads.
+        // Use conservative acknowledged 19-byte chunks on Android for reliability.
+        const android = /Android/i.test(navigator.userAgent);
+        const supportsFastTransfer = transfer.properties.writeWithoutResponse;
+        const useWriteWithoutResponse = !android && supportsFastTransfer
+          && typeof transfer.writeValueWithoutResponse === 'function';
+        if (useWriteWithoutResponse) {
+          showTransferStage('Checking watch transfer capabilities...', 0);
+          const capability = await command(new Uint8Array([67]));
+          const match = /^CAP:(\d+)$/.exec(capability);
+          if (!match || Number(match[1]) < defaultChunkSize || Number(match[1]) > maxChunkSize) {
+            throw new Error('Unexpected watch capabilities: ' + capability);
+          }
+          chunkSize = Number(match[1]);
+        }
+        showTransferStage('Starting watch transfer...', 0);
+        const start = await command(new Uint8Array([replaceMode ? 82 : 83]));
+        if (start !== 'OK') throw new Error('Could not start transfer: ' + start);
+        batchStarted = true;
+        for (; index < selectedFiles.length; ++index) {
+          const file = selectedFiles[index].file;
+          status.textContent = 'Checking ' + (index + 1) + ' of ' + selectedFiles.length + ': ' + file.name;
+          showTransferStage('Reading/converting ' + file.name + ' from selected source...', 0);
+          let bytes;
+          try {
+            bytes = await preparePhoto(file);
+          } catch (error) {
+            ++skipped; addResult(file.name + ': ' + error.message + ' (if the photo cannot be read from a connected device, try copying it to local storage first)'); continue;
+          }
+          const begin = new Uint8Array(9);
+          begin[0] = 66;
+          const header = new DataView(begin.buffer);
+          header.setUint32(1, bytes.length, true);
+          header.setUint32(5, crc32(bytes), true);
+          showTransferStage('Preparing watch for ' + file.name + '...', 0);
+          const ready = await command(begin);
+          if (ready.startsWith('ERR:')) {
+            const error = /^ERR:([A-Z_]+):(\d+)$/.exec(ready);
+            if (!error) throw new Error('Unexpected watch response: ' + ready);
+            replaced = Number(error[2]);
+            if (error[1] === 'STORAGE') throw new Error('Watch storage failed; restart the watch');
+            ++skipped; addResult(file.name + ': watch reported ' + error[1]); continue;
+          }
+          if (!/^READY:\d+$/.test(ready)) throw new Error('Unexpected watch response: ' + ready);
+          replaced = Number(ready.slice(6));
+          let packetsSinceAck = 0, nextProgress = 0;
+          for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            if (offset >= nextProgress) {
+              const pct = Math.floor(100 * offset / bytes.length);
+              status.textContent = 'Sending ' + file.name + ': ' + pct + '%.';
+              showTransferStage('Sending ' + file.name + ' · ' + pct + '%', pct);
+              nextProgress = offset + 1900;
+            }
+            const chunk = bytes.subarray(offset, offset + chunkSize);
+            const packet = new Uint8Array(chunk.length + 1);
+            packet[0] = 68;
+            packet.set(chunk, 1);
+            if (useWriteWithoutResponse) {
+              await transfer.writeValueWithoutResponse(packet);
+              ++packetsSinceAck;
+              if (packetsSinceAck === writeWindow || offset + chunk.length === bytes.length) {
+                const ack = await command(new Uint8Array([65]));
+                if (ack !== 'ACK:' + (offset + chunk.length)) {
+                  throw new Error('Watch did not acknowledge photo data: ' + ack);
+                }
+                packetsSinceAck = 0;
+              }
+            } else {
+              await transfer.writeValueWithResponse(packet);
+            }
+          }
+          showTransferStage('Finishing ' + file.name + '...', 100);
+          const result = await command(new Uint8Array([69]));
+          if (result !== 'SAVED') {
+            const error = /^ERR:([A-Z_]+):(\d+)$/.exec(result);
+            if (!error) throw new Error('Unexpected watch response: ' + result);
+            replaced = Number(error[2]);
+            if (error[1] === 'STORAGE') throw new Error('Watch storage failed; restart the watch');
+            ++skipped; addResult(file.name + ': watch reported ' + error[1]); continue;
+          }
+          ++saved;
+          addResult(file.name + ': transferred');
+        }
+        if (replaceMode && saved === 0) {
+          const result = await command(new Uint8Array([81]));
+          if (result !== 'OK') throw new Error('Watch cleanup failed: ' + result);
+          batchStarted = false;
+          status.textContent = 'No photos transferred; the existing watch collection was not changed. ' + skipped + ' skipped. Check the result list for each error.';
+          showTransferStage('No photos transferred — see details below.', 0);
+          return;
+        }
+        saveStarted = storageMode === 'FLASH2' || storageMode === 'FLASH3';
+        showTransferStage('Finishing transfer and saving watch photos...', 100);
+        let finish = await command(new Uint8Array([88]));
+        if (saveStarted && finish === 'SAVING') {
+          status.textContent = 'Saving transferred photos to watch flash...';
+          const deadline = Date.now() + 120000;
+          do {
+            await new Promise(resolve => setTimeout(resolve, 250));
+            finish = await command(new Uint8Array([80]));
+          } while (finish === 'SAVING' && Date.now() < deadline);
+        }
+        if (finish !== 'OK') throw new Error('Could not save transferred photos: ' + finish);
+        batchStarted = false;
+        showTransferStage('Finished — ' + saved + ' transferred, ' + skipped + ' skipped.', 100);
+        status.textContent = 'Finished: ' + saved + ' transferred, ' + skipped
+          + ' skipped.' + (replaceMode ? ' Watch collection replaced.' : ' ' + replaced + ' old watch photos replaced.')
+          + (saveStarted ? ' Photos saved to flash.' : '');
+      } catch (error) {
+        showTransferStage('Transfer stopped — see error below.', 0);
+        status.textContent = 'Transfer stopped: ' + error.message + '. ' + saved
+          + ' transferred, ' + skipped + ' skipped, ' + replaced + ' old photos replaced; '
+          + (selectedFiles.length - index) + ' not completed.';
+        if (saveStarted) {
+          status.textContent += ' Flash save was not confirmed; previously saved photos may still be available.';
+        } else if (batchStarted && device && device.gatt.connected && transfer) {
+          try {
+            const result = await command(new Uint8Array([(storageMode === 'FLASH2' || storageMode === 'FLASH3') ? 81 : 88]));
+            if (result !== 'OK') status.textContent += ' Watch cleanup failed: ' + result;
+            if (storageMode === 'FLASH2' || storageMode === 'FLASH3') {
+              status.textContent += ' Transferred photos were not saved to flash.';
+            }
+          } catch (cleanupError) {
+            status.textContent += ' Watch cleanup failed: ' + cleanupError.message;
+          }
+        }
+      } finally {
+        sending = false;
+        renderPreviews();
+        updateControls();
+      }
+    });
+
+    window.addEventListener('beforeunload', cleanupPreviews);
+  </script>
+<script>
+(() => {
+  const status = document.getElementById('status');
+  const dot = document.getElementById('statusdot');
+  const progress = document.getElementById('progresswrap');
+  const bar = document.getElementById('progressbar');
+  const label = document.getElementById('progresslabel');
+  const results = document.getElementById('results');
+  new MutationObserver(() => {
+    const text = status.textContent;
+    dot.className = 'dot' + (/^Connected to /.test(text) || /^Finished:/.test(text) ? ' connected' : /^(Checking |Sending |Connecting)/.test(text) ? ' busy' : /^(Connection failed|Transfer stopped|Web Bluetooth)/.test(text) ? ' error' : '');
+    // Transfer stages and progress are driven directly by the upload handler.
+
+  }).observe(status,{childList:true,characterData:true,subtree:true});
+  new MutationObserver(() => {
+    for(const li of results.children) li.className = li.textContent.endsWith(': transferred') ? 'ok' : 'bad';
+  }).observe(results,{childList:true});
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => {
+      console.warn('Offline setup was unavailable:', error);
+    });
+  });
+}
+</script>
+</body>
+</html>
